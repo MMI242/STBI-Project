@@ -10,8 +10,8 @@ services:
   indexing:
     <<: *common-config
     profiles: ["indexing"]
-    # Placeholder: Replace with actual indexing script, e.g., python indexes/build_index.py
-    command: echo "Run indexing script here"
+    # Run the indexing script
+    command: python preprocessing/build-index.py
 
   search:
     <<: *common-config
