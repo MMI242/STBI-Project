@@ -1,5 +1,9 @@
 # Sistem Rekomendasi Obat
+<<<<<<< HEAD
 ![Logo](rekomendasi-obat.jpg "Logo")
+=======
+![Logo](rekomendasi-obat.png "Logo"). 
+>>>>>>> d83aaba (Transparent icon update)
 
 ## Penggunaan
 ### Local
