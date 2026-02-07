@@ -1,6 +1,7 @@
 services:
   base: &common-config
     build: .
+    image: drug-recommender:latest
     volumes:
       - .:/app
     working_dir: /app
