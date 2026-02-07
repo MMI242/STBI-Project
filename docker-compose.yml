@@ -20,6 +20,12 @@ services:
     stdin_open: true
     tty: true
     command: python scripts/search.py
+  search-eval:
+    <<: *common-config
+    profiles: ["search"]
+    stdin_open: true
+    tty: true
+    command: python scripts/search-eval.py
 
   extraction:
     <<: *common-config
