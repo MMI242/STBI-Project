@@ -6,13 +6,23 @@
 - [ ] Buat `requirements.txt` (pyserini, scispacy, dll)
 
 ## 2. Dataset
-- [ ] Skrip fetch PubMed (5 tahun terakhir)
-- [ ] Skrip preprocessing (cleaning, format JSONL)
-- [ ] Download/generate dataset
+- [x] Skrip fetch PubMed (5 tahun terakhir)
+- [x] Skrip preprocessing (cleaning, format JSONL)
+- [x] Download/generate dataset
+### Output:
+- Skrip pembuatan dataset di `preprocessing/dataset/preparedata.py`
+- Dataset jadi di `preprocessing/dataset/processed/pubmed_2020_2025.jsonl`
+- Dataset jadi diupload di `https://drive.google.com/file/d/1MPhn4gNCMapH-ddtw3jxzIZwpzLyTfex/view?usp=sharing`
+
+
 
 ## 3. Indexing (Pyserini)
 - [ ] Skrip build inverted index dari JSONL
 - [ ] Verifikasi index
+
+### Output:
+- hasil index ditaruh di `indexes`
+- script/langkah pembuat indexing dengan pyserini ditaruh di `preprocessing/build-index.py`
 
 ## 4. Information Retrieval
 - [ ] Modul query expansion (tambah treatment/pharmacotherapy/drug/therapy)
