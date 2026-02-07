@@ -2,7 +2,10 @@
 2. Dataset jadi: `processed/pubmed_2020_2025.jsonl`
 
 ## file yang sudah jadi
-di google drive: TBD (baru upload) (2GB)
+di google drive: 
+https://drive.google.com/file/d/1MPhn4gNCMapH-ddtw3jxzIZwpzLyTfex/view?usp=sharing
+
+ (2GB)
 
 ### Format json
 ```json
