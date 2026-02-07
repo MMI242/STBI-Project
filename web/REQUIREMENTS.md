@@ -16,4 +16,4 @@ To run this application, you need:
 ```bash
 pip install -r requirements.txt
 python -m spacy download en_core_sci_sm
-```
+```  
