@@ -1,0 +1,4 @@
+flask
+pyserini
+scispacy
+spacy
