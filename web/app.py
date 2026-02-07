@@ -11,29 +11,34 @@ app = Flask(__name__)
 
 # --- KONFIGURASI ---
 INDEX_PATH = 'indexes/lucene-index-pubmed'
-MODEL_NAME = "en_core_sci_sm"
+# Using BC5CDR (Chemicals/Diseases) - Better for specific drugs
+MODEL_NAME = "en_ner_bc5cdr_md"
 
 # Load scispaCy model for NER
 try:
     nlp = spacy.load(MODEL_NAME)
     print(f"Loaded model {MODEL_NAME}")
 except:
-    print(f"Warning: Model {MODEL_NAME} not found. Drug extraction will be limited.")
+    print(f"Warning: Model {MODEL_NAME} not found. please install it.")
     nlp = None
 
 def extract_drugs(text):
     if not nlp:
         return []
     doc = nlp(text)
-    # Filter entities that are likely to be drugs/chemicals
-    # In scispaCy, these are often labeled as 'CHEMICAL' or just generic entities
-    # we can filter by looking for specific patterns or using a linker
     drugs = set()
     for ent in doc.ents:
-        # Simple heuristic: often drugs are short or have specific suffixes
-        # but here we just take the entities found by the biomedical model
-        # You can refine this with more specific models like en_ner_bc5cdr_md
-        drugs.add(ent.text)
+        # BC5CDR uses "CHEMICAL" for drugs
+        if ent.label_ == "CHEMICAL":
+            # Filter out short acronyms (e.g., "AIT", "ICS") and unlikely candidates
+            if len(ent.text) < 4:
+                continue
+            
+            # Simple heuristic to exclude generic classes often ending in 's' or 'therapy'
+            # if ent.text.lower() in ['drugs', 'medication', 'therapy', 'treatment']:
+            #    continue
+                
+            drugs.add(ent.text)
     return list(drugs)[:10] # Limit to 10 unique entities
 
 def get_searcher():
@@ -52,41 +57,60 @@ def index():
         searcher = get_searcher()
         if searcher:
             try:
+                # Simple Query Expansion
+                expanded_query = f"{query} AND (treatment OR pharmacotherapy OR drug OR therapy)"
+                print(f"Searching for: {expanded_query}")
+                
                 # BM25 Search
-                hits = searcher.search(query, k=10)
+                hits = searcher.search(expanded_query, k=10)
+                
+                all_drugs = []
                 
                 for hit in hits:
-                    # Pyserini stores the raw JSON if --storeRaw was used
                     import json
-                    doc_data = json.loads(hit.raw)
+                    # ScoredDoc doesn't have .raw, need to fetch doc first
+                    doc = searcher.doc(hit.docid)
+                    if not doc:
+                        continue
+                    doc_data = json.loads(doc.raw())
                     
                     content = doc_data.get('contents', '')
                     title = content.split('. ')[0] if '. ' in content else content
                     
-                    # Extract snippet (first 300 chars or around the query)
                     snippet = content
                     if len(snippet) > 300:
                         snippet = snippet[:300] + "..."
                     
-                    # Highlight query in snippet (simple regex)
                     highlighted_snippet = re.sub(f"({re.escape(query)})", r'<mark>\1</mark>', snippet, flags=re.IGNORECASE)
                     
                     # Drug extraction from the full content
-                    drugs = extract_drugs(content)
+                    drugs_in_doc = extract_drugs(content)
                     
                     results.append({
                         'id': hit.docid,
                         'title': title,
                         'year': doc_data.get('year', 'N/A'),
                         'snippet': highlighted_snippet,
-                        'drugs': drugs
+                        'drugs': drugs_in_doc
                     })
+                    
+                    # Collect for aggregation (using a set per doc to count DOCUMENT frequency, not term frequency)
+                    # "menghitung berapa kali obat itu disebutkan di antara 10 jurnal berbeda"
+                    unique_drugs_in_doc = set(drugs_in_doc)
+                    all_drugs.extend(unique_drugs_in_doc)
+                
+                # Aggregation & Ranking
+                from collections import Counter
+                drug_counts = Counter(all_drugs)
+                # Sort by frequency (desc), then name
+                recommended_drugs = sorted(drug_counts.items(), key=lambda x: (-x[1], x[0]))
+                
             except Exception as e:
                 error = f"Search error: {str(e)}"
         else:
             error = "Index not found. Please run 'python preprocessing/build-index.py' first."
 
-    return render_template('index.html', query=query, results=results, error=error)
+    return render_template('index.html', query=query, results=results, recommended_drugs=recommended_drugs if 'recommended_drugs' in locals() else [], error=error)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
