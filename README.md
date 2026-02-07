@@ -1,4 +1,6 @@
 # Sistem Rekomendasi Obat
+![Logo](rekomendasi-obat.jpg "Logo"). 
+
 ## Penggunaan
 ### Local
 - Install java
