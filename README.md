@@ -1,9 +1,13 @@
 # Task List: Sistem Rekomendasi Obat
 
 ## 1. Setup Environment
-- [ ] Buat `Dockerfile` (Python + Java untuk Pyserini)
-- [ ] Buat `docker-compose.yml`
-- [ ] Buat `requirements.txt` (pyserini, scispacy, dll)
+- [x] Buat `Dockerfile` (Python + Java untuk Pyserini)
+- [x] Buat `docker-compose.yml`
+- [x] Buat `requirements.txt` (pyserini, scispacy, dll)
+
+### Output - container list:
+- bash/coba-coba: `docker compose --profile dev run --rm base`
+- indexing: `docker compose --profile indexing run --rm indexing`
 
 ## 2. Dataset
 - [x] Skrip fetch PubMed (5 tahun terakhir)
@@ -17,10 +21,12 @@
 
 
 ## 3. Indexing (Pyserini)
-- [ ] Skrip build inverted index dari JSONL
-- [ ] Verifikasi index
+- [x] Skrip build inverted index dari JSONL
+- [x] Verifikasi index
 
 ### Output:
+- script indexing: `preprocessing/build-index.py`
+- jalankan dengan docker `docker compose --profile indexing run --rm indexing`
 - hasil index ditaruh di `indexes`
 - script/langkah pembuat indexing dengan pyserini ditaruh di `preprocessing/build-index.py`
 
