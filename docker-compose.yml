@@ -17,8 +17,9 @@ services:
   search:
     <<: *common-config
     profiles: ["search"]
-    # Placeholder: Replace with actual search script
-    command: echo "Run search CLI here"
+    stdin_open: true
+    tty: true
+    command: python scripts/search.py
 
   extraction:
     <<: *common-config

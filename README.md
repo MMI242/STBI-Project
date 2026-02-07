@@ -1,5 +1,5 @@
 # Sistem Rekomendasi Obat
-![Logo](rekomendasi-obat.jpg "Logo")
+![Logo](rekomendasi-obat.png "Logo") 
 
 ## Penggunaan
 ### Local
@@ -44,6 +44,7 @@ docker compose --profile webapp up webapp
 #### Output - container list:
 - bash/coba-coba: `docker compose --profile dev run --rm base`
 - indexing: `docker compose --profile indexing run --rm indexing`
+- searching: `docker compose --profile search run --rm search python scripts/search.py asthma`
 
 ### 2. Dataset
 - [x] Skrip fetch PubMed (5 tahun terakhir)
@@ -66,8 +67,13 @@ docker compose --profile webapp up webapp
 - script/langkah pembuat indexing dengan pyserini ditaruh di `preprocessing/build-index.py`
 
 ### 4. Information Retrieval
-- [ ] Modul query expansion (tambah treatment/pharmacotherapy/drug/therapy)
-- [ ] Modul search BM25 (top-K retrieval)
+- [x] Modul query expansion (tambah treatment/pharmacotherapy/drug/therapy)
+- [x] Modul search BM25 (top-K retrieval)
+
+### output:
+- `web` bagian dari webapp `web/`
+- modul evaluasi/eksperimen:
+    - jalankan searching cli dengan docker: `docker compose --profile search run --rm search python scripts/search.py diabetes melitus`
 
 ### 5. Ekstraksi Entitas (scispaCy)
 - [ ] Modul ekstraksi nama obat

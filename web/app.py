@@ -1,21 +1,23 @@
 import os
 import re
+import json
 from flask import Flask, render_template, request
 from pyserini.search.lucene import LuceneSearcher
-import spacy
-import scispacy
-from scispacy.abbreviation import AbbreviationDetector
-from scispacy.linking import EntityLinker
+from pathlib import Path
 
 app = Flask(__name__)
 
 # --- KONFIGURASI ---
-INDEX_PATH = 'indexes/lucene-index-pubmed'
+# Menggunakan path absolut relatif terhadap file ini
+BASE_DIR = Path(__file__).resolve().parent.parent
+INDEX_PATH = BASE_DIR / 'indexes' / 'lucene-index-pubmed'
 # Using BioNLP13CG (Broad Biomedical)
 MODEL_NAME = "en_ner_bionlp13cg_md"
 
 # Load scispaCy model for NER
 try:
+    import spacy
+    import scispacy
     nlp = spacy.load(MODEL_NAME)
     print(f"Loaded model {MODEL_NAME}")
 except:
@@ -31,18 +33,20 @@ def extract_drugs(text):
         # BioNLP13CG uses "SIMPLE_CHEMICAL" for drugs/chemicals
         # We also keep "CHEMICAL" just in case, and "DRUG"
         if ent.label_ in ["SIMPLE_CHEMICAL", "CHEMICAL", "DRUG"]:
-            # Filter out short acronyms (e.g., "AIT", "ICS") if needed
-            if len(ent.text) < 4:
+            if len(ent.text) < 3:
                 continue
                 
             drugs.add(ent.text)
     return list(drugs)[:10] # Limit to 10 unique entities
 
 def get_searcher():
-    if not os.path.exists(INDEX_PATH):
-        print(f"Error: Index not found at {INDEX_PATH}")
+    if not INDEX_PATH.exists():
         return None
-    return LuceneSearcher(INDEX_PATH)
+    try:
+        return LuceneSearcher(str(INDEX_PATH))
+    except Exception as e:
+        print(f"Error initializing searcher: {e}")
+        return None
 
 @app.route('/')
 def index():
@@ -72,7 +76,9 @@ def index():
                     doc_data = json.loads(doc.raw())
                     
                     content = doc_data.get('contents', '')
-                    title = content.split('. ')[0] if '. ' in content else content
+                    # Judul biasanya kalimat pertama (sebelum titik pertama)
+                    title_match = re.split(r'\. ', content, maxsplit=1)
+                    title = title_match[0] if title_match else "No Title"
                     
                     snippet = content
                     if len(snippet) > 300:
@@ -105,7 +111,7 @@ def index():
             except Exception as e:
                 error = f"Search error: {str(e)}"
         else:
-            error = "Index not found. Please run 'python preprocessing/build-index.py' first."
+            error = f"Index tidak ditemukan di {INDEX_PATH}. Pastikan sudah menjalankan build-index.py."
 
     return render_template('index.html', query=query, results=results, recommended_drugs=recommended_drugs if 'recommended_drugs' in locals() else [], error=error)
 
