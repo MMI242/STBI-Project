@@ -1,5 +1,5 @@
 # Sistem Rekomendasi Obat
-![Logo](rekomendasi-obat.jpg "Logo")
+![Logo](rekomendasi-obat.png "Logo") 
 
 ## Penggunaan
 ### Local
