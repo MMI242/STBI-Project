@@ -11,8 +11,8 @@ app = Flask(__name__)
 
 # --- KONFIGURASI ---
 INDEX_PATH = 'indexes/lucene-index-pubmed'
-# Using BC5CDR (Chemicals/Diseases) - Better for specific drugs
-MODEL_NAME = "en_ner_bc5cdr_md"
+# Using BioNLP13CG (Broad Biomedical)
+MODEL_NAME = "en_ner_bionlp13cg_md"
 
 # Load scispaCy model for NER
 try:
@@ -28,15 +28,12 @@ def extract_drugs(text):
     doc = nlp(text)
     drugs = set()
     for ent in doc.ents:
-        # BC5CDR uses "CHEMICAL" for drugs
-        if ent.label_ == "CHEMICAL":
-            # Filter out short acronyms (e.g., "AIT", "ICS") and unlikely candidates
+        # BioNLP13CG uses "SIMPLE_CHEMICAL" for drugs/chemicals
+        # We also keep "CHEMICAL" just in case, and "DRUG"
+        if ent.label_ in ["SIMPLE_CHEMICAL", "CHEMICAL", "DRUG"]:
+            # Filter out short acronyms (e.g., "AIT", "ICS") if needed
             if len(ent.text) < 4:
                 continue
-            
-            # Simple heuristic to exclude generic classes often ending in 's' or 'therapy'
-            # if ent.text.lower() in ['drugs', 'medication', 'therapy', 'treatment']:
-            #    continue
                 
             drugs.add(ent.text)
     return list(drugs)[:10] # Limit to 10 unique entities
