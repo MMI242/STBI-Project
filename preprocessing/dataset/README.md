@@ -1,11 +1,10 @@
-1. eksekusi preparedata.py (ctrl-c manual setelah data kebanyakan +- 1juta proposal)
+## Alur Kerja
+1. Eksekusi preparedata.py (ctrl-c manual setelah data kebanyakan +- 1 juta proposal)
 2. Dataset jadi: `processed/pubmed_2020_2025.jsonl`
 
-## file yang sudah jadi
-di google drive: 
-https://drive.google.com/file/d/1MPhn4gNCMapH-ddtw3jxzIZwpzLyTfex/view?usp=sharing
-
- (2GB)
+## File
+Dapat di unduh melalui google drive: 
+https://drive.google.com/file/d/1MPhn4gNCMapH-ddtw3jxzIZwpzLyTfex/view?usp=sharing (2GB)
 
 ### Format json
 ```json
