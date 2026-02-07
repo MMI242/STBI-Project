@@ -1,0 +1,36 @@
+services:
+  base: &common-config
+    build: .
+    volumes:
+      - .:/app
+    working_dir: /app
+    profiles: ["dev"]
+    command: bash
+
+  indexing:
+    <<: *common-config
+    profiles: ["indexing"]
+    # Placeholder: Replace with actual indexing script, e.g., python indexes/build_index.py
+    command: echo "Run indexing script here"
+
+  search:
+    <<: *common-config
+    profiles: ["search"]
+    # Placeholder: Replace with actual search script
+    command: echo "Run search CLI here"
+
+  extraction:
+    <<: *common-config
+    profiles: ["extraction"]
+    # Placeholder: Replace with actual extraction script
+    command: echo "Run extraction CLI here"
+
+  webapp:
+    <<: *common-config
+    profiles: ["webapp"]
+    ports:
+      - "8000:5000"
+    environment:
+      - FLASK_APP=web/app.py
+      - FLASK_DEBUG=1
+    command: flask run --host=0.0.0.0
