@@ -28,7 +28,9 @@ def build_index():
         "--index", index_dir,
         "--generator", "DefaultLuceneDocumentGenerator",
         "--threads", "4",  # Increased threads since we have full dataset
-        "--storePositions", "--storeDocvectors", "--storeRaw"
+        "--storePositions", "--storeDocvectors", "--storeRaw",
+        "--compress", # compress index
+        "--optimize", #
     ]
     
     print(f"Executing: {' '.join(cmd)}")
