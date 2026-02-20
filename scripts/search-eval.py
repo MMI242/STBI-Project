@@ -2,7 +2,7 @@
 import sys
 from search import main as search_main
 
-def main(original_query):
+def main(original_query, auto_expand=True):
     extended_query = f"{original_query} AND (treatment OR pharmacotherapy OR drug OR therapy)"
     query = f"""
 Konteks:
@@ -18,9 +18,13 @@ Relevan: Ya/Tidak
 Alasan: <alasan singkat>
 
 hasil pencariannya adalah berikut ini:
-{search_main(original_query)}
+{search_main(original_query, auto_expand=auto_expand)}
 """
     return query
 
 if __name__ == "__main__":
-    print(main(sys.argv[1:]))
+    auto_expand = True
+    if "--no-expand" in sys.argv:
+        auto_expand = False
+        sys.argv.remove("--no-expand")
+    print(main(sys.argv[1:], auto_expand=auto_expand))
