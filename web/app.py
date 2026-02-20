@@ -4,6 +4,7 @@ import json
 from flask import Flask, render_template, request
 from pyserini.search.lucene import LuceneSearcher
 from pathlib import Path
+import sys
 
 app = Flask(__name__)
 
@@ -13,6 +14,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 INDEX_PATH = BASE_DIR / 'indexes' / 'lucene-index-pubmed'
 # Using BioNLP13CG (Broad Biomedical)
 MODEL_NAME = "en_ner_bionlp13cg_md"
+
+scripts_dir = BASE_DIR / 'scripts'
+sys.path.append(str(scripts_dir))
+from search import build_query_string
 
 # Load scispaCy model for NER
 try:
@@ -66,12 +71,11 @@ def index():
         searcher = get_searcher()
         if searcher:
             try:
-                # Simple Query Expansion
-                expanded_query = f"{query} AND (treatment OR pharmacotherapy OR drug OR therapy)"
-                print(f"Searching for: {expanded_query}")
                 
+                # query expandsion dan advanced parsing di build_query_string
+                query_obj = build_query_string(query)
                 # BM25 Search
-                hits = searcher.search(expanded_query, k=10)
+                hits = searcher.search(query_obj, k=10)
                 
                 all_drugs = []
                 
