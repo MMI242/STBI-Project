@@ -2,9 +2,31 @@
 ![Logo](rekomendasi-obat.png "Logo") 
 
 ## Penggunaan
+
+### Dengan Docker
+- Membuat image
+```bash
+docker build -t drug-recommender:latest .
+```
+
+- Jalankan indexer
+```bash
+# indexing dengan compress
+docker compose run --rm indexing python preprocessing/build-index.py --optimize --compress
+# indexing dengan optimize saja
+docker compose run --rm indexing python preprocessing/build-index.py --optimize
+# indexing tanpa optimize maupun compress
+docker compose --profile indexing run --rm indexing
+```
+
+- Jalankan webapp
+```bash
+docker compose --profile webapp up webapp
+```
+
 ### Tanpa Docker
-- Install java
-- Install python
+- Install java https://www.java.com/en/download/
+- Install python https://www.python.org/
 - Install package python
 ```bash
 python -m pip install -r requirements.txt
@@ -16,22 +38,6 @@ python preprocessing/build-index.py
 - Jalankan webapp
 ```bash
 FLASK_APP=web/app.py flask run --host=0.0.0.0
-```
-
-### Dengan Docker
-- Membuat image
-```bash
-docker build -t drug-recommender:latest .
-```
-
-- Jalankan indexer
-```bash
-docker compose --profile indexing run --rm indexing
-```
-
-- Jalankan webapp
-```bash
-docker compose --profile webapp up webapp
 ```
 
 ## Task List
