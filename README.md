@@ -1,6 +1,10 @@
 # Sistem Rekomendasi Obat
 ![Logo](rekomendasi-obat.png "Logo") 
 
+## Screenshot
+
+![Web UI](screenshot.jpg "Web UI Screenshot")
+
 ## Penggunaan
 
 ### Dengan Docker
