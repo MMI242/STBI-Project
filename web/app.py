@@ -18,10 +18,18 @@ MODEL_NAME = "en_ner_bionlp13cg_md"
 try:
     import spacy
     import scispacy
-    nlp = spacy.load(MODEL_NAME)
+    try:
+        # Cara 1: Load via pintasan nama string (standard spaCy)
+        nlp = spacy.load(MODEL_NAME)
+    except OSError:
+        # Cara 2: Import sebagai modul (fallback jika linking gagal)
+        # Nama package pip untuk model ini biasanya menggunakan underscore
+        import en_ner_bionlp13cg_md
+        nlp = en_ner_bionlp13cg_md.load()
+        
     print(f"Loaded model {MODEL_NAME}")
-except:
-    print(f"Warning: Model {MODEL_NAME} not found. please install it.")
+except Exception as e:
+    print(f"Warning: Failed to load model {MODEL_NAME}. Error: {e}")
     nlp = None
 
 def extract_drugs(text):

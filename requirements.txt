@@ -1,5 +1,7 @@
 flask
 pyserini
+# Pin numpy version to avoid ABI incompatibility with scispacy/spacy
+numpy<2.0.0
 scispacy
 spacy
 requests
