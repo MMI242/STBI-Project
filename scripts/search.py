@@ -4,7 +4,7 @@ from jnius import autoclass
 
 searcher = LuceneSearcher('indexes/lucene-index-pubmed')
 
-def build_query_string(query):
+def build_query_string(query, auto_expand=True):
     """
     Fungsi ini membersihkan query input dan membangun string query untuk Lucene.
     Query yang dibangun akan menggabungkan query asli dengan filter untuk mencari artikel yang relevan
@@ -16,7 +16,10 @@ def build_query_string(query):
     query_bersih = query.replace("[", "").replace("]", "").replace("'", "").replace('"', "").replace(",", "")
     query_bersih = " ".join(query_bersih.split())
 
-    lucene_query_str = f'("{query_bersih}") AND (treatment OR pharmacotherapy OR drug OR therapy)'
+    if auto_expand:
+        lucene_query_str = f'("{query_bersih}") AND (treatment OR pharmacotherapy OR drug OR therapy)'
+    else:
+        lucene_query_str = f'("{query_bersih}")'
     print(f"Melakukan pencarian dengan string query: {lucene_query_str}")
     
     # Panggil class Java dari Lucene secara langsung
@@ -36,8 +39,8 @@ def build_query_string(query):
     return query_obj
 
 
-def main(query):
-    hits = searcher.search(build_query_string(query), k=10)
+def main(query, auto_expand=True):
+    hits = searcher.search(build_query_string(query, auto_expand=auto_expand), k=10)
 
     hasil = ""
     for hit in hits:

@@ -130,6 +130,30 @@ $$
 	ext{Precision} = \frac{\text{jumlah entitas obat valid}}{\text{total entitas yang diekstraksi}}
 $$
 
+## Hasil dan Pembahasan
+
+### Evaluasi Information Retrieval
+
+Evaluasi kinerja sistem Information Retrieval (IR) dilakukan dengan mengukur metrik Precision@10 (P@10) pada 10 kueri penyakit yang telah ditentukan. Penilaian relevansi dokumen dilakukan dengan bantuan assessor berbasis Large Language Model (LLM) yaitu Gemini 3 Pro (Preview). Model ini diberi tugas untuk memverifikasi apakah 10 dokumen teratas yang dikembalikan oleh sistem benar-benar membahas terapi atau pengobatan farmakologis untuk penyakit yang bersangkutan.
+
+Hasil evaluasi menunjukkan performa yang sangat baik dengan skor rata-rata (Mean P@10) sebesar **0.89**. Rincian skor untuk setiap kueri disajikan dalam tabel berikut:
+
+| No | Kueri (Penyakit) | P@10 | Keterangan |
+|----|---|---|---|
+| 1 | Asthma | 0.8 | Terdapat 2 dokumen kurang relevan (fokus pada komorbiditas). |
+| 2 | Common Cold | 0.6 | Beberapa hasil membahas virus sejenis (COVID-19) atau penyakit lain. |
+| 3 | Depressive Disorder | 1.0 | Seluruh dokumen relevan membahas terapi depresi. |
+| 4 | Dermatitis | 0.9 | Satu dokumen membahas efek samping obat lain, bukan terapi dermatitis. |
+| 5 | GERD | 1.0 | Hasil relevan mencakup farmakoterapi dan intervensi prosedural. |
+| 6 | Hyperlipidemia | 0.9 | Sebagian besar dokumen membahas manajemen lipid dan statin. |
+| 7 | Hypertension | 0.9 | Hasil relevan mencakup panduan klinis dan studi obat antihipertensi. |
+| 8 | Osteoarthritis | 1.0 | Seluruh dokumen relevan membahas manajemen nyeri dan terapi lutut. |
+| 9 | Pneumonia | 0.8 | Terdapat dokumen fokus pada resistensi antibiotik umum, bukan terapi spesifik. |
+| 10 | Type 2 Diabetes Mellitus | 1.0 | Hasil sangat relevan mencakup obat antidiabetes dan manajemen metabolik. |
+| **Rata-rata** | | **0.89** | **Sangat Baik** |
+
+Secara keseluruhan, algoritma BM25 yang dikombinasikan dengan *Query Expansion* terbukti efektif dalam menyaring dokumen medis yang relevan. Skor terendah ditemukan pada kueri "Common Cold" (0.6), di mana sistem terkadang menarik artikel yang membahas virus pernapasan lain (seperti SARS-CoV-2) karena kemiripan terminologi virologi dalam abstrak. Namun, untuk penyakit kronis seperti Diabetes, Osteoarthritis, dan Depresi, sistem mencapai presisi sempurna (1.0).
+
 ## Daftar Pustaka
 Darıcı, S. (2025). Artificial Intelligence and Medicine 2014-2024: Bibliometric Analysis and Global Impacts . Journal of Intelligent Decision Making and Information Science, 2, 250–271. https://doi.org/10.59543/jidmis.v2i.13525, (mirror1) (archive.org)
 
