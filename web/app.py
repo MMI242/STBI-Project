@@ -11,7 +11,8 @@ app = Flask(__name__)
 # Menggunakan path absolut relatif terhadap file ini
 BASE_DIR = Path(__file__).resolve().parent.parent
 INDEX_PATH = BASE_DIR / 'indexes' / 'lucene-index-pubmed'
-MODEL_NAME = "en_core_sci_sm"
+# Using BioNLP13CG (Broad Biomedical)
+MODEL_NAME = "en_ner_bionlp13cg_md"
 
 # Load scispaCy model for NER
 try:
@@ -19,23 +20,24 @@ try:
     import scispacy
     nlp = spacy.load(MODEL_NAME)
     print(f"Loaded model {MODEL_NAME}")
-except Exception as e:
-    print(f"Warning: Could not load scispaCy model {MODEL_NAME}: {e}")
-    print("Drug extraction will be disabled. Run: pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_core_sci_sm-0.5.4.tar.gz")
+except:
+    print(f"Warning: Model {MODEL_NAME} not found. please install it.")
     nlp = None
 
 def extract_drugs(text):
     if not nlp:
         return []
-    try:
-        doc = nlp(text)
-        # Ambil entitas yang terdeteksi oleh model scispaCy
-        # Bisa difilter lebih lanjut jika menggunakan model spesifik seperti bc5cdr
-        drugs = sorted(list(set([ent.text for ent in doc.ents])))
-        return drugs[:10]  # Batasi 10 rekomendasi
-    except Exception as e:
-        print(f"Error during extraction: {e}")
-        return []
+    doc = nlp(text)
+    drugs = set()
+    for ent in doc.ents:
+        # BioNLP13CG uses "SIMPLE_CHEMICAL" for drugs/chemicals
+        # We also keep "CHEMICAL" just in case, and "DRUG"
+        if ent.label_ in ["SIMPLE_CHEMICAL", "CHEMICAL", "DRUG"]:
+            if len(ent.text) < 3:
+                continue
+                
+            drugs.add(ent.text)
+    return list(drugs)[:10] # Limit to 10 unique entities
 
 def get_searcher():
     if not INDEX_PATH.exists():
@@ -56,47 +58,62 @@ def index():
         searcher = get_searcher()
         if searcher:
             try:
+                # Simple Query Expansion
+                expanded_query = f"{query} AND (treatment OR pharmacotherapy OR drug OR therapy)"
+                print(f"Searching for: {expanded_query}")
+                
                 # BM25 Search
-                hits = searcher.search(query, k=10)
+                hits = searcher.search(expanded_query, k=10)
+                
+                all_drugs = []
                 
                 for hit in hits:
-                    # Ambil raw content (disimpan saat indexing dengan --storeRaw)
-                    try:
-                        doc_data = json.loads(hit.raw)
-                    except:
-                        # Fallback jika .raw tidak tersedia atau bukan JSON
-                        doc_data = {"contents": hit.contents if hasattr(hit, 'contents') else "", "id": hit.docid, "year": "N/A"}
+                    import json
+                    # ScoredDoc doesn't have .raw, need to fetch doc first
+                    doc = searcher.doc(hit.docid)
+                    if not doc:
+                        continue
+                    doc_data = json.loads(doc.raw())
                     
                     content = doc_data.get('contents', '')
                     # Judul biasanya kalimat pertama (sebelum titik pertama)
                     title_match = re.split(r'\. ', content, maxsplit=1)
                     title = title_match[0] if title_match else "No Title"
                     
-                    # Snippet: Ambil teks setelah judul atau awal teks
-                    abstract = title_match[1] if len(title_match) > 1 else content
-                    snippet = abstract[:400] + "..." if len(abstract) > 400 else abstract
+                    snippet = content
+                    if len(snippet) > 300:
+                        snippet = snippet[:300] + "..."
                     
-                    # Highlight query
                     highlighted_snippet = re.sub(f"({re.escape(query)})", r'<mark>\1</mark>', snippet, flags=re.IGNORECASE)
                     
-                    # Ekstraksi rekomendasi obat
-                    drugs = extract_drugs(content)
+                    # Drug extraction from the full content
+                    drugs_in_doc = extract_drugs(content)
                     
                     results.append({
                         'id': hit.docid,
                         'title': title,
                         'year': doc_data.get('year', 'N/A'),
                         'snippet': highlighted_snippet,
-                        'drugs': drugs
+                        'drugs': drugs_in_doc
                     })
+                    
+                    # Collect for aggregation (using a set per doc to count DOCUMENT frequency, not term frequency)
+                    # "menghitung berapa kali obat itu disebutkan di antara 10 jurnal berbeda"
+                    unique_drugs_in_doc = set(drugs_in_doc)
+                    all_drugs.extend(unique_drugs_in_doc)
+                
+                # Aggregation & Ranking
+                from collections import Counter
+                drug_counts = Counter(all_drugs)
+                # Sort by frequency (desc), then name
+                recommended_drugs = sorted(drug_counts.items(), key=lambda x: (-x[1], x[0]))
+                
             except Exception as e:
                 error = f"Search error: {str(e)}"
         else:
             error = f"Index tidak ditemukan di {INDEX_PATH}. Pastikan sudah menjalankan build-index.py."
 
-    return render_template('index.html', query=query, results=results, error=error)
+    return render_template('index.html', query=query, results=results, recommended_drugs=recommended_drugs if 'recommended_drugs' in locals() else [], error=error)
 
 if __name__ == '__main__':
-    # Pastikan templates folder ada
-    os.makedirs(os.path.join(os.path.dirname(__file__), 'templates'), exist_ok=True)
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, port=5000)

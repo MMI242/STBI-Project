@@ -52,10 +52,14 @@ def build_index():
         "--storePositions",  # Menyimpan posisi kata (untuk phrase query).
         "--storeDocvectors", # Menyimpan vektor dokumen (untuk query expansion/RM3).
         "--storeRaw",  # Menyimpan teks asli dokumen (boros tempat)
+
+        # dibuat agar bisa diaktifkan/dinonaktifkan dengan argument pemanggilan
         # "--optimize", # Merges index segments for better performance and slightly smaller size
+        # "--compress", # compress index
     ]
     # tambah flag untuk pyserini.
-    # misal tambah optimize, panggil build-index.py --optimize
+    # misal tambah optimize atau compress, panggil
+    # `build-index.py --optimize --compress`
     cmd.extend([args for args in sys.argv[1:] if args.startswith("--")])
     
     print(f"Executing: {' '.join(cmd)}")
