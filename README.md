@@ -2,7 +2,7 @@
 ![Logo](rekomendasi-obat.png "Logo") 
 
 ## Penggunaan
-### Local
+### Tanpa Docker
 - Install java
 - Install python
 - Install package python
@@ -18,7 +18,7 @@ python preprocessing/build-index.py
 FLASK_APP=web/app.py flask run --host=0.0.0.0
 ```
 
-### Docker
+### Dengan Docker
 - Membuat image
 ```bash
 docker build -t drug-recommender:latest .
