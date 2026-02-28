@@ -1,6 +1,6 @@
 # Sistem Rekomendasi Obat
-**24 Januari 2026**
 
+**24 Januari 2026**
 
 - Dhea Anggita
 - Muhammad Ramdan Izzulmakin
@@ -20,9 +20,11 @@
 ## Pendahuluan
 
 ### Latar Belakang
+
 Ketika melakukan rekomendasi obat, tenaga medis harus memberi keputusan berdasarkan bukti ilmiah terbaru. Sementara itu, volume publikasi ilmiah di dunia medis senantiasa bertambah setiap tahunnya. Platform seperti PubMed menyimpan jutaan abstrak jurnal, namun tenaga medis seringkali kesulitan menemukan informasi spesifik mengenai efektivitas suatu obat di tengah tumpukan data yang masif tersebut. Pencarian manual memakan waktu yang lama, sementara kebutuhan terkait dengan keputusan medis seringkali bersifat mendesak. Selain itu risiko terjadi kesalahan informasi medis juga sangatlah tinggi jika mengandalkan mesin pencari umum. Oleh karena itu, pengembangan aplikasi sistem Information Retrieval (IR) yang terfokus untuk menyaring literatur ilmiah medis sangatlah diperlukan. Sistem IR diusulkan dirancang untuk menyajikan rekomendasi dalam bentuk yang terstruktur dan mudah dipahami.
 
 Alasan mengapa aplikasi ini perlu dibuat adalah:
+
 * Publikasi ilmiah meningkat setiap tahun (overload informasi).
 * Rekomendasi obat harus didasarkan bukti ilmiah terbaru.
 * Perlunya efisiensi waktu bagi tenaga medis untuk menentukan keputusan.
@@ -30,22 +32,26 @@ Alasan mengapa aplikasi ini perlu dibuat adalah:
 * Urgensi Precision Medicine: Kebutuhan untuk melakukan pencarian yang lebih spesifik berdasarkan entitas medis (gejala dan zat kimia) untuk mendukung ketepatan dosis dan jenis terapi.
 
 ### Rumusan Masalah
+
 * Bagaimana membangun sistem Information Retrieval yang mampu menyaring ribuan abstrak jurnal medis untuk menemukan korelasi antara penyakit dan terapi obat?
 * Bagaimana menerapkan algoritma BM25 untuk menghasilkan urutan dokumen yang memiliki relevansi tinggi terhadap gejala atau penyakit tertentu?
 * Bagaimana mengekstraksi entitas obat dari dokumen yang relevan untuk memberikan rekomendasi yang terstruktur?
 
 ### Tujuan Penelitian
+
 * Mengimplementasikan framework Pyserini dengan algoritma BM25 untuk melakukan indexing dan retrieval dokumen medis dari dataset PubMed secara efisien.
 * Mengembangkan modul ekstraksi obat dari dokumen hasil pencarian teratas (top-K retrieval) menggunakan scispaCy (https://github.com/allenai/scispacy).
 * Mengevaluasi performa sistem dalam menyajikan dokumen dengan metrik Precision@K, dan akurasi ekstraksi entitas obat menggunakan metrik Entity Precision.
 * Menghasilkan prototipe sistem rekomendasi obat dengan Evidence-Based Medicine yang menyajikan kutipan referensi ilmiah sebagai alat bantu bagi tenaga medis.
 
 ### Batasan Masalah
+
 * Hanya mengambil informasi dari Abstrak dari jurnal.
 * Rekomendasi obat diberikan berdasarkan frekuensi dan relevansi literatur, bukan diagnosis.
 * Dataset yang digunakan menggunakan subset PubMed, yang dibatasi 1000000 artikel dari 5 tahun terakhir.
 
 ## Tinjauan Pustaka
+
 Akhir-akhir ini, pertumbuhan publikasi jurnal medis meningkat pesat. Darici (2025) menemukan bahwa volume publikasi jurnal medis berbahasa inggris meningkat 30.38% di 10 tahun terakhir. Pada penelitian lainnya Gomez dkk (2022) menyatakan bahwa pertumbuhan publikasi medis peer-reviewed dalam dekade terakhir (dari 2013) adalah sebesar 9.42% pertahun. Pertumbuhan yang terus meningkat Ini menyediakan potensi yang besar bagi tenaga medis untuk mendapatkan informasi medis dari penelitian scientific yang telah dipublikasikan.
 
 Akan tetapi pertumbuhan volume informasi yang terus meningkat ini justru memunculkan tantangan baru yang dikenal dengan information overload. Arnold dkk. (2023) menegaskan bahwa digitalisasi dan penggunaan teknologi informasi yang tidak terkelola dapat memperparah kondisi information overload, sehingga diperlukan intervensi struktural melalui desain teknologi yang tepat untuk mengatasinya. Dalam bidang medis, ketiadaan alat penyaring yang efektif membuat tenaga kesehatan kesulitan memilah bukti ilmiah yang relevan di tengah tumpukan data yang besar.
@@ -63,6 +69,7 @@ Berdasarkan pembahasan masalah dan tinjauan teknologi diatas, penelitian ini hen
 ## Metode Penelitian
 
 ### Dataset
+
 Penelitian ini menggunakan subset dataset abstrak jurnal medis dari PubMed dengan batasan 1000000 publikasi yang dirilis 5 tahun terakhir. Dataset melalui proses pembersihan untuk menghapus karakter non-text, stopwords, dan menstandarisasi format teks agar hasil indexing lebih optimal. Proses persiapan database dilakukan secara otomatis dari download, penyaringan, dan pembersihan karakter, hingga penyimpanan dan didapatkan 1000000 artikel dari 5 tahun terakhir. Download dilakukan secara bertahap dari file annual-baseline PubMed terakhir (saat ini pubmed25n1274.xml.gz), kemudian dilanjutkan download file dengan iterasi sebelumnya (1273, 1272, dan seterusnya). Proses ini ditunjukkan pada diagram berikut.
 
 ```mermaid
@@ -75,14 +82,15 @@ flowchart TD
     Parse --> Clean["clean data dari karakter non-text"]
     Clean --> Add["ambil artikel keluaran >= 2020, tambahkan ke<br>kumpulan_artikel.json"]
     Add --> Check{"total"}
-    
+
     Check -- "total tertambahkan < 1000000" --> Decrement["k = k-1"]
     Decrement --> Url
-    
+
     Check -- "total tertambahkan >= 1000000" --> Finish([selesai])
 ```
 
 ### Pengembangan Sistem
+
 Sistem yang dikembangkan menerima input gejala penyakit atau nama penyakit, dan memberikan keluaran Rekomendasi obat dan tautan/kutipan jurnal terkait. Sistem memiliki alur penggunaan dan tahapan proses yang divisualisasikan pada diagram berikut.
 
 ```mermaid
@@ -129,6 +137,7 @@ Tahap selanjutnya adalah proses IR dengan menggunakan algoritma BM25 dengan PySe
 
 **Ekstraksi Entitas Obat**
 Pada tahap ekstraksi, 10 dokumen teratas dipindai dengan metode Named Entity Recognition (NER) menggunakan tool NLP ScispaCy. Sistem kemudian mengekstraksi informasi yang relevan berupa:
+
 * Nama obat generic / non-generic.
 * Bahan aktif (senyawa kimia).
 * Dosis.
@@ -140,6 +149,7 @@ Pada tahapan ini dilakukan perangkingan untuk daftar obat yang muncul di 10 doku
 
 **Evaluasi Information Retrieval**
 Evaluasi bagian pertama (IR) dilakukan untuk mengukur kemampuan sistem Pyserini+BM25 dalam menyajikan dokumen yang memuat informasi terapi obat. Metrik yang digunakan adalah Precision@10 (P@10). Prosedur yang dilakukan adalah sebagai berikut:
+
 * Sistem diuji dengan 10 query penyakit.
 * Untuk masing-masing query, diambil top-10 hasil pencarian.
 * Top-10 untuk masing-masing query kemudian dinilai secara manual (peneliti sebagai Assessor) diberi skor 1 bila relevan, dan 0 bila tidak relevan.
@@ -149,6 +159,7 @@ $$P@10 = \frac{\text{Banyak dokumen relevan di top 10}}{10}$$
 $$\text{Metrik Keseluruhan} = \text{Mean}(P@10)$$
 
 Penentuan 10 kueri penyakit didasarkan pada prevalensi penyakit di layanan kesehatan primer (PHC) menurut studi epidemiologi terbaru (Albalawi et al., 2024) untuk memastikan evaluasi sistem memiliki relevansi klinis yang tinggi. Berdasarkan data prevalensi tersebut, queri dibagi menjadi:
+
 * Penyakit Pernapasan (22.5%): Common Cold, Asthma, Pneumonia.
 * Penyakit Kardiovaskular (18.3%): Hypertension, Hyperlipidemia.
 * Gangguan Endokrin (15.8%): Type 2 Diabetes Mellitus.
@@ -159,6 +170,7 @@ Penentuan 10 kueri penyakit didasarkan pada prevalensi penyakit di layanan keseh
 
 **Evaluasi Tahap 2 (Ekstraksi)**
 Evaluasi bagian kedua (Ekstraksi) dilakukan dengan menggunakan Entity Precision untuk mengukur akurasi scispaCy dalam membedakan entitas obat dengan selain obat. Tahapan evaluasi adalah sebagai berikut:
+
 * Dapatkan daftar kata yang dianggap obat dari dokumen yang relevan dari sistem.
 * Dilakukan validasi manual, diberi label Valid bila merupakan nama obat atau zat aktif.
 * Dan Invalid bila berupa kata selain entitas obat.
@@ -168,29 +180,79 @@ $$\text{Precision} = \frac{\text{Banyak entitas obat valid}}{\text{Total entitas
 
 ## Hasil dan Pembahasan
 
+### Pengembangan Inverted Index
+
+Proses indexing merupakan tahapan krusial dalam sistem ini. Pengindeksan dilakukan menggunakan Pyserini, sebuah antarmuka Python untuk mesin pencari Lucene. Dataset PubMed (JSONL) diolah menggunakan `JsonCollection` dan `DefaultLuceneDocumentGenerator`. 
+
+Salah satu fitur utama Lucene yang digunakan adalah **Index Compression**. Secara default, Lucene menggunakan codec canggih (seperti `Lucene99`) yang secara otomatis mengompresi struktur data indeks, termasuk *postings lists*, *doc values*, dan *stored fields*. Pyserini tidak menyediakan opsi eksplisit untuk "mematikan" kompresi ini karena efisiensi penyimpanan adalah inti dari desain Lucene. Artinya, indeks yang dihasilkan selalu dalam keadaan terkompresi.
+
+Selain kompresi bawaan, proses indexing dalam penelitian ini juga menerapkan optimasi tambahan melalui flag `--optimize`. Opsi ini memaksa Lucene untuk menggabungkan segmen-segmen indeks kecil menjadi satu segmen besar (*force merge*). Meskipun proses ini memakan waktu komputasi di awal, namun memberikan keuntungan jangka panjang berupa:
+
+1. **Peningkatan Kecepatan Pencarian:** Mengurangi jumlah file yang harus dibuka dan dibaca oleh sistem saat query dieksekusi.
+2. **Efisiensi Penyimpanan:** Mengurangi *overhead* metadata file sistem dan menghapus dokumen yang ditandai untuk dihapus (*deleted documents*).
+   Hasil akhirnya adalah sebuah struktur *inverted index* yang padat dan efisien, siap menangani pencarian cepat di antara jutaan dokumen medis.
+
 ### Evaluasi Information Retrieval
 
 Evaluasi kinerja sistem Information Retrieval (IR) dilakukan dengan mengukur metrik Precision@10 (P@10) pada 10 kueri penyakit yang telah ditentukan. Penilaian relevansi dokumen dilakukan dengan bantuan assessor berbasis Large Language Model (LLM) yaitu Gemini 3 Pro (Preview). Model ini diberi tugas untuk memverifikasi apakah 10 dokumen teratas yang dikembalikan oleh sistem benar-benar membahas terapi atau pengobatan farmakologis untuk penyakit yang bersangkutan.
 
 Hasil evaluasi menunjukkan performa yang sangat baik dengan skor rata-rata (Mean P@10) sebesar **0.89**. Rincian skor untuk setiap kueri disajikan dalam tabel berikut:
 
-| No | Kueri (Penyakit) | P@10 | Keterangan |
-|----|---|---|---|
-| 1 | Asthma | 0.8 | Terdapat 2 dokumen kurang relevan (fokus pada komorbiditas). |
-| 2 | Common Cold | 0.6 | Beberapa hasil membahas virus sejenis (COVID-19) atau penyakit lain. |
-| 3 | Depressive Disorder | 1.0 | Seluruh dokumen relevan membahas terapi depresi. |
-| 4 | Dermatitis | 0.9 | Satu dokumen membahas efek samping obat lain, bukan terapi dermatitis. |
-| 5 | GERD | 1.0 | Hasil relevan mencakup farmakoterapi dan intervensi prosedural. |
-| 6 | Hyperlipidemia | 0.9 | Sebagian besar dokumen membahas manajemen lipid dan statin. |
-| 7 | Hypertension | 0.9 | Hasil relevan mencakup panduan klinis dan studi obat antihipertensi. |
-| 8 | Osteoarthritis | 1.0 | Seluruh dokumen relevan membahas manajemen nyeri dan terapi lutut. |
-| 9 | Pneumonia | 0.8 | Terdapat dokumen fokus pada resistensi antibiotik umum, bukan terapi spesifik. |
-| 10 | Type 2 Diabetes Mellitus | 1.0 | Hasil sangat relevan mencakup obat antidiabetes dan manajemen metabolik. |
-| **Rata-rata** | | **0.89** | **Sangat Baik** |
+| No            | Kueri (Penyakit)         | P@10     | Keterangan                                                                     |
+| ------------- | ------------------------ | -------- | ------------------------------------------------------------------------------ |
+| 1             | Asthma                   | 0.8      | Terdapat 2 dokumen kurang relevan (fokus pada komorbiditas).                   |
+| 2             | Common Cold              | 0.6      | Beberapa hasil membahas virus sejenis (COVID-19) atau penyakit lain.           |
+| 3             | Depressive Disorder      | 1.0      | Seluruh dokumen relevan membahas terapi depresi.                               |
+| 4             | Dermatitis               | 0.9      | Satu dokumen membahas efek samping obat lain, bukan terapi dermatitis.         |
+| 5             | GERD                     | 1.0      | Hasil relevan mencakup farmakoterapi dan intervensi prosedural.                |
+| 6             | Hyperlipidemia           | 0.9      | Sebagian besar dokumen membahas manajemen lipid dan statin.                    |
+| 7             | Hypertension             | 0.9      | Hasil relevan mencakup panduan klinis dan studi obat antihipertensi.           |
+| 8             | Osteoarthritis           | 1.0      | Seluruh dokumen relevan membahas manajemen nyeri dan terapi lutut.             |
+| 9             | Pneumonia                | 0.8      | Terdapat dokumen fokus pada resistensi antibiotik umum, bukan terapi spesifik. |
+| 10            | Type 2 Diabetes Mellitus | 1.0      | Hasil sangat relevan mencakup obat antidiabetes dan manajemen metabolik.       |
+| **Rata-rata** |                          | **0.89** | **Sangat Baik**                                                                |
 
 Secara keseluruhan, algoritma BM25 yang dikombinasikan dengan *Query Expansion* terbukti efektif dalam menyaring dokumen medis yang relevan. Skor terendah ditemukan pada kueri "Common Cold" (0.6), di mana sistem terkadang menarik artikel yang membahas virus pernapasan lain (seperti SARS-CoV-2) karena kemiripan terminologi virologi dalam abstrak. Namun, untuk penyakit kronis seperti Diabetes, Osteoarthritis, dan Depresi, sistem mencapai presisi sempurna (1.0).
 
+### Evaluasi Tahap 2 (Ekstraksi Entitas Obat)
+
+Evaluasi kinerja modul ekstraksi entitas obat dilakukan menggunakan model NLP ScispaCy. Pengujian dilakukan pada 10 kueri penyakit (total dokumen top-10 per kueri) dengan total **236 entitas unik** yang dievaluasi secara manual. Hasil evaluasi presisi entitas (*Entity Precision*) disajikan pada tabel berikut:
+
+| No            | Kueri Penyakit  | Entitas Valid | Total Entitas Unik | Precision (%) |
+| ------------- |:--------------- |:------------- |:------------------ |:------------- |
+| 1             | Pneumonia       | 26            | 32                 | 81.2%         |
+| 2             | Asthma          | 13            | 17                 | 76.5%         |
+| 3             | Dermatitis      | 16            | 22                 | 72.7%         |
+| 4             | Osteoarthritis  | 13            | 19                 | 68.4%         |
+| 5             | Hypertension    | 17            | 31                 | 54.8%         |
+| 6             | Type 2 Diabetes | 8             | 15                 | 53.3%         |
+| 7             | Common Cold     | 22            | 42                 | 52.4%         |
+| 8             | Hyperlipidemia  | 16            | 32                 | 50.0%         |
+| 9             | Depressive      | 4             | 9                  | 44.4%         |
+| 10            | GERD            | 6             | 17                 | 35.3%         |
+| **Rata-rata** |                 |               |                    | **58.9%**     |
+
+*Rata-rata Entity Precision: 58.9%*
+
+**Analisis Kekurangan:**
+Dari hasil evaluasi, ditemukan beberapa pola kesalahan yang memengaruhi akurasi ekstraksi:
+
+1. **Ambiguitas Singkatan:** Model sering salah mengklasifikasikan singkatan non-kimia sebagai entitas obat. Contoh: "BP" (*Blood Pressure*) pada hipertensi, "CI" (*Confidence Interval*), dan "OR" (*Odds Ratio*) sering terdeteksi.
+2. **Entitas Fisiologis:** Senyawa kimia alami tubuh seperti "Glucose", "Oxygen", "Creatinine", dan "Lipids" terdeteksi sebagai *SIMPLE_CHEMICAL*. Meskipun secara harfiah benar, dalam konteks rekomendasi obat, entitas ini adalah *noise*.
+3. **Varian Penulisan:** ScispaCy terkadang memisahkan nama garam obat (contoh: "Calcium" terpisah dari "Channel Blockers"), yang mengurangi makna semantik entitas tersebut.
+
+Meskipun demikian, untuk penyakit dengan terapi obat yang spesifik dan unik (seperti antibiotik pada *Pneumonia* atau antibodi monoklonal pada *Asthma* dan *Dermatitis*), sistem mampu mencapai presisi tinggi (>70%). Hal ini menunjukkan potensi besar model ScispaCy jika digabungkan dengan mekanisme *post-processing* (seperti filter *blacklist* untuk istilah umum) untuk meningkatkan kualitas rekomendasi akhir.
+
+## Kesimpulan
+
+Penelitian ini berhasil mengembangkan prototipe sistem rekomendasi obat berbasis *Evidence-Based Medicine*.
+
+1. **Sistem IR:** Integrasi Pyserini dan BM25 dengan *Query Expansion* terbukti sangat efektif (Mean P@10 = 0.89) dalam menemukan dokumen relevan.
+2. **Sistem Ekstraksi:** Modul NLP ScispaCy mampu mengekstraksi kandidat obat dengan rata-rata presisi 58.9%.
+3. **Implikasi:** Sistem ini dapat membantu tenaga medis mempercepat pencarian literatur obat, namun verifikasi manual tetap diperlukan mengingat tingkat presisi ekstraksi obat yang masih perlu ditingkatkan melalui teknik filtering lanjut.
+
 ## Daftar Pustaka
+
 * Darıcı, S. (2025). Artificial Intelligence and Medicine 2014-2024: Bibliometric Analysis and Global Impacts. Journal of Intelligent Decision Making and Information Science, 2, 250–271. https://doi.org/10.59543/jidmis.v2i.13525, (mirror1) (archive.org).
 * De Andrade Gomes, J., Braga, L. A. M., Cabral, B. P., Lopes, R. M., & Mota, F. B. (2024). Problem-Based Learning in Medical Education: A Global Research Landscape of the Last Ten Years (2013-2022). Medical science educator, 34(3), 551–560. https://doi.org/10.1007/s40670-024-02003-1.
 * Arnold, M., Goldschmitt, M., & Rigotti, T. (2023). Dealing with information overload: a comprehensive review. Frontiers in psychology, 14, 1122200. https://doi.org/10.3389/fpsyg.2023.1122200.

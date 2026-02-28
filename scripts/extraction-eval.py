@@ -84,15 +84,22 @@ Berikan output dalam format Tabel Markdown:
     for i, (chem, count) in enumerate(chem_counts.most_common()):
         prompt += f"| {i+1} | {chem} | {count} | ... | ... |\n"
 
-    prompt += f"""
+    prompt += (f"""
 \n---
 Total Entitas Unik Ditemukan: {len(unique_chems)}
 Total Frekuensi Entitas: {len(all_chemicals)}
+Presisi:
+
+Rumus metrik:
+"""+
+    "$$\\text{Precision} = \\frac{\\text{Banyak entitas obat valid}}{\\text{Total entitas yang diekstraksi}}$$"
++"""
+
 
 Instruksi Penilaian:
 - Valid: Nama obat (Aspirin), Golongan obat (Antibiotics), Zat aktif (Metformin).
 - Invalid: Unsur kimia tubuh (Oxygen, Sodium), Istilah umum (Patients, Water), Salah potong kata.
-"""
+""")
     return prompt
 
 if __name__ == "__main__":
